@@ -60,7 +60,11 @@ def process_project_folder_api():
         return "No session found at backend"
     
     folderpath = sessions[session_id]["project_path"]
-    hash_to_lineno_fullproj, parse_args_fullproj = process_project_folder(folderpath)
+    
+    # TODO: Get this from the frontend. Requires more testing!! Currently considering it as False, as we mannually added the argparse code in the main block
+    auto_gen_args = False 
+
+    hash_to_lineno_fullproj, parse_args_fullproj = process_project_folder(folderpath,auto_gen_args=auto_gen_args)
     
     sessions[session_id] = {
         "project_path": folderpath,

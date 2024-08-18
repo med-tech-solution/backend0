@@ -57,7 +57,12 @@ def montior(caller_metadata, profile_log_csv_path):
     Args: arg1, arg2
     Value: 10 , 20
     """
-    command = ["python", caller_metadata["filepath"]]+[f"--{key}={value}" for key, value in caller_metadata["args"].items()]
+    # Add permissions to the file
+    # print("->>>>>>>> Adding permissions to the file", caller_metadata['filepath'])
+    os.system(f"chmod -R 777 {'../interim_projects/'}")
+    # print("->>>>>>>> Permissions added to the file", caller_metadata['filepath'])
+
+    command = ["python3", caller_metadata["filepath"]]+[f"--{key}={value}" for key, value in caller_metadata["args"].items()]
     process = subprocess.Popen(command)
     pid = process.pid
     print(f"Started with PID: {pid}")

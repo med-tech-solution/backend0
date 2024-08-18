@@ -17,15 +17,15 @@ def code_llama_prompt_formatter(query: str, system_prompt: str=None):
     PROMPT = B_INST + SYSTEM_PROMPT + USER_INSTRUCTION + E_INST
     return PROMPT
 
-def extract_and_clean_code(s):
-    # Extract text between ``` and ```
-    pattern = r'```(.*?)```'
-    matches = re.findall(pattern, s, re.DOTALL)
+# def extract_and_clean_code(s):
+#     # Extract text between ``` and ```
+#     pattern = r'```(.*?)```'
+#     matches = re.findall(pattern, s, re.DOTALL)
     
-    # Remove "import logging" from each extracted code block
-    cleaned_matches = [re.sub(r'\bimport logging\b', '', match).strip() for match in matches]
+#     # Remove "import logging" from each extracted code block
+#     cleaned_matches = [re.sub(r'\bimport logging\b', '', match).strip() for match in matches]
     
-    return cleaned_matches[0]
+#     return cleaned_matches[0]
 
 # Create Code LLama Instruct Engine
 class CodeLLamaInstructEngine:
@@ -43,14 +43,15 @@ class CodeLLamaInstructEngine:
         else:
             self.systemPromptText = systemPromptText
         
-    def run(self, query: str, clean_code: bool=True):
+    def run(self, query: str, extract_and_clean_code=None):
         PROMPT = code_llama_prompt_formatter(
             system_prompt=self.systemPromptText,
             query=query
         )
         response = self.client.completions.create(model=self.model, prompt=PROMPT)
         response_text = response.choices[0].text
-        if clean_code:
-            return extract_and_clean_code(response_text)
-        else:
-            return response_text
+        
+        if extract_and_clean_code is not None:
+            response_text = extract_and_clean_code(response_text)
+        
+        return response_text
