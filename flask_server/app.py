@@ -23,7 +23,7 @@ sessions = {
 @app.route('/create_session', methods=['POST'])
 def create_session_api():
     #  TODO: Create a new session and return the session id. Here project files should come from frontend
-    return "sess1"
+    return jsonify({"sessionId": "sess1"})
 
 @app.route('/get_all_project_files', methods=['POST'])
 def get_all_project_files_api():
