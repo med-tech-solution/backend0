@@ -40,7 +40,11 @@ def get_all_project_files_api():
         return "No session found at backend"
     
     folderpath = sessions[session_id]["project_path"]
+    # print(folderpath)
+    # print(os.curdir)
+    # print(os.listdir(folderpath))
     python_files = glob.glob(f"{folderpath}/*.py")
+    # print(python_files)
     file_content = {}
     for file in python_files:
         with open(file, 'r') as f:
@@ -125,6 +129,39 @@ def start_profiling_api():
         "process_pid": process.pid
     })
 
+@app.route('/start_profiling2', methods=['POST'])
+def start_profiling_api2():
+    
+    data = request.json
+
+    if "session_id" not in data:
+        return "Session ID not provided", 400
+
+    session_id = data["session_id"]
+    if session_id not in sessions:
+        return "No session found at backend", 404
+
+    if "caller_metadata" not in data:
+        return "Caller metadata not provided", 400
+    
+    caller_metadata = data["caller_metadata"]
+    print(data)
+    proj_name = sessions[session_id]["project_path"].split("/")[-1]
+    profile_log_csv_path = f"../profile_logs/{proj_name}.csv"
+    function_log_path = f"../function_logs/{proj_name}.log"
+    
+    if "hash_to_lineno_fullproj" not in sessions[session_id]:
+        return "Intermediary data not found", 404
+    # print("here")
+    process = start_profiling(caller_metadata, profile_log_csv_path, function_log_path)
+    sessions[session_id]["process"] = process
+    sessions[session_id]["profile_log_csv_path"] = profile_log_csv_path
+    sessions[session_id]["function_log_path"] = function_log_path
+
+    return jsonify({
+        "process_pid": process.pid
+    })
+
 @app.route('/kill_process', methods=['POST'])
 def kill_process_api():
     data = request.json
@@ -147,17 +184,17 @@ def analyze_profile_api():
     data = request.json
     
     if "session_id" not in data:
-        return "Session ID not provided"
+        return "Session ID not provided",201
     session_id = data["session_id"]
     if session_id not in sessions:
-        return "No session found at backend"
+        return "No session found at backend",202
     
     proj_name = sessions[session_id]["project_path"].split("/")[-1]
 
     if "process" not in sessions[session_id]:
-        return "No process to analyze"
+        return "No process to analyze",300
     if check_alive(sessions[session_id]["process"].pid):
-        return "Profiling Process is still running."
+        return "Profiling Process is still running.",501
     
     profile_log_csv_path = sessions[session_id]["profile_log_csv_path"]
     function_log_path = sessions[session_id]["function_log_path"]
@@ -169,6 +206,10 @@ def analyze_profile_api():
         "function_profile_map": function_profile_map,
         "profiletime_to_function": profiletime_to_function
     })
+
+
+
+
 
 
 if __name__ == '__main__':
