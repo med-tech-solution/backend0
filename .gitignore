@@ -2,4 +2,6 @@ myenv
 .env
 .venv
 **/__pycache__/
+target_projects/*
+interim_projects
 
