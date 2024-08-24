@@ -239,8 +239,10 @@ def get_session_details_api():
     
     if not session_id or session_id not in sessions:
         return jsonify({"error": "Session ID not provided or invalid"}), 400
-    
-    return jsonify(sessions[session_id])
+    sessions_return=sessions[session_id].copy()
+    if "process" in sessions_return:
+        del(sessions_return["process"])
+    return jsonify(sessions_return)
 
 # Reset the target projects folder, interim projects folder, profile logs folder, and sessions
 # Dont delete the root folder just delete its contents
