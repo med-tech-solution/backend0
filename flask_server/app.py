@@ -27,7 +27,7 @@ def create_session_api():
         return jsonify({"error": "No file uploaded"}), 400
 
     # Generate a new session ID
-    session_id = "sess1"#str(uuid.uuid4())
+    session_id = str(uuid.uuid4())
     project_folder_name = f"proj_{session_id}"
     project_folder_path = os.path.join(UPLOAD_FOLDER, project_folder_name)
     os.makedirs(project_folder_path, exist_ok=True)
