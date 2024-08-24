@@ -2,6 +2,7 @@ from common_imports import *
 from utils import *
 from profile_utils import *
 from profile_anal import *
+from opt_utils import *
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -12,9 +13,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Maps session id to project data
 sessions = {
-    # "sess1": {
-    #     "project_path": "../target_projects/proj_sess1",
-    # }
+    "sess1": {
+        "project_path": "../target_projects/proj_sess1",
+    }
 }
 
 @app.route('/create_session', methods=['POST'])
@@ -205,6 +206,41 @@ def analyze_profile_api():
         "profiletime_to_function": profiletime_to_function
     })
 
+
+# Optimize fucntion
+@app.route('/optimize', methods=['POST'])
+def optimize_api():
+    data = request.json
+    session_id = data.get("session_id")
+    funcion_id = int(data.get("function_id"))
+    
+    if not session_id or session_id not in sessions:
+        return jsonify({"error": "Session ID not provided or invalid"}), 400
+    
+    if "hash_to_lineno_fullproj" not in sessions[session_id]:
+        return jsonify({"error": "Intermediary data not found"}), 400
+    
+    print("Function ID: ", funcion_id)
+    print("Hash to Line No: ", sessions[session_id]["hash_to_lineno_fullproj"])
+    if funcion_id not in sessions[session_id]["hash_to_lineno_fullproj"]:
+        return jsonify({"error": "Function ID not found"}), 400
+    
+    function_info = sessions[session_id]["hash_to_lineno_fullproj"][funcion_id]
+
+    optimized_code = optimize_function(function_info)
+
+    return jsonify({"optimized_code": optimized_code})
+
+# Get all session details 
+@app.route('/get_session_details', methods=['POST'])
+def get_session_details_api():
+    data = request.json
+    session_id = data.get("session_id")
+    
+    if not session_id or session_id not in sessions:
+        return jsonify({"error": "Session ID not provided or invalid"}), 400
+    
+    return jsonify(sessions[session_id])
 
 # Reset the target projects folder, interim projects folder, profile logs folder, and sessions
 # Dont delete the root folder just delete its contents

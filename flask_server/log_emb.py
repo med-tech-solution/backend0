@@ -13,20 +13,6 @@ def replace_code_in_file(file_content, old_code, new_code, handle_indentation=Tr
     new_file_content = file_content.replace(old_code, new_code)
     return new_file_content
 
-def read_code(filepath):
-    with open(filepath, "r") as file:
-        return file.read()
-    
-
-def write_code(filepath, content):
-    with open(filepath, "w") as file:
-        file.write(content)
-    
-def hash(s):
-    return sum([ord(c) for c in s])
-
-
-
 
 class LogEmbedderWorkflow:
     def __init__(self,paramcount:int=7):

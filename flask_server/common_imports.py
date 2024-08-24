@@ -75,3 +75,15 @@ def copy_directory_contents(src_dir, dest_dir):
         else:
             # Copy files
             shutil.copy2(item, dest_item)
+
+def read_code(filepath):
+    with open(filepath, "r") as file:
+        return file.read()
+    
+
+def write_code(filepath, content):
+    with open(filepath, "w") as file:
+        file.write(content)
+    
+def hash(s):
+    return sum([ord(c) for c in s])
