@@ -2,6 +2,7 @@ from common_imports import *
 from log_emb import *
 from arg_generator_cllama_utils import *
 
+
 def process_project_folder(folderpath,auto_gen_args=False):
     """
     It takes a folder path and processes all the python files in the folder
@@ -9,10 +10,19 @@ def process_project_folder(folderpath,auto_gen_args=False):
     # Extract project name from folder path
     project_name = folderpath.split("/")[2]
     # Creating a folder to store the modified files
+
+    print("Project name : ", project_name)
     try:
         os.mkdir(f"../interim_projects/{project_name}")
     except FileExistsError:
         print("Interim folder already exists")
+
+    # Copy all contents of the target folder to the interim folder
+    print(f"Copying files to interim folder from {folderpath} to ../interim_projects/{project_name}")
+    try:
+        copy_directory_contents(folderpath, f"../interim_projects/{project_name}")
+    except FileExistsError:
+        print("Some Error Occured while copying files to interim folder")
 
     # Creating log embedding workflow object
     log_embedder = LogEmbedderWorkflow(paramcount=7)
@@ -23,12 +33,16 @@ def process_project_folder(folderpath,auto_gen_args=False):
     parse_args_fullproj = {}
     
      # Get all the python files in the folder
-    python_files = glob.glob(f"{folderpath}/*.py")
+    # python_files = glob.glob(f"{folderpath}/*.py")
+    python_files = list_all_files(folderpath)
 
 
     for file in python_files:
         read_filepath = file
-        write_filepath = f"../interim_projects/{project_name}/{file.split('/')[-1]}"
+        # write_filepath = f"../interim_projects/{project_name}/{file.split('/')[-1]}"
+        # Replace the 'target_projects' folder with 'interim_projects'
+        write_filepath = file.replace("target_projects","interim_projects")
+
         logging_filepath = f"../function_logs/{project_name}.log"
         print(f"Read File: {read_filepath} | Write File: {write_filepath} | Logging File: {logging_filepath}")
         # Process the file
@@ -41,7 +55,7 @@ def process_project_folder(folderpath,auto_gen_args=False):
     if auto_gen_args:
         main_function_curator = MainFunctionCurator()
         for file in python_files:
-            write_filepath = f"../interim_projects/{project_name}/{file.split('/')[-1]}"
+            write_filepath = file.replace("target_projects","interim_projects")
             content = main_function_curator.curate_main_block(write_filepath)
             with open(write_filepath, "w") as f:
                 f.write(content)
@@ -50,7 +64,7 @@ def process_project_folder(folderpath,auto_gen_args=False):
 
     for file in python_files:
         read_filepath = file
-        write_filepath = f"../interim_projects/{project_name}/{file.split('/')[-1]}"
+        write_filepath = file.replace("target_projects","interim_projects")
         parse_args = retireve_all_parse_args(write_filepath)
         parse_args_fullproj[read_filepath] = parse_args
         print(f"Log: Parse Args for {write_filepath} Done")

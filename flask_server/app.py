@@ -2,10 +2,6 @@ from common_imports import *
 from utils import *
 from profile_utils import *
 from profile_anal import *
-import os
-import zipfile
-import io
-import uuid
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -15,7 +11,11 @@ UPLOAD_FOLDER = '../target_projects'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Maps session id to project data
-sessions = {}
+sessions = {
+    # "sess1": {
+    #     "project_path": "../target_projects/proj_sess1",
+    # }
+}
 
 @app.route('/create_session', methods=['POST'])
 def create_session_api():
@@ -26,7 +26,7 @@ def create_session_api():
         return jsonify({"error": "No file uploaded"}), 400
 
     # Generate a new session ID
-    session_id = str(uuid.uuid4())
+    session_id = "sess1"#str(uuid.uuid4())
     project_folder_name = f"proj_{session_id}"
     project_folder_path = os.path.join(UPLOAD_FOLDER, project_folder_name)
     os.makedirs(project_folder_path, exist_ok=True)
@@ -40,10 +40,13 @@ def create_session_api():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+    print("Project uploaded and extracted successfully: ", project_folder_path)
     # Store the session data
     sessions[session_id] = {
-        "project_path": project_folder_path+"/"+filename.split(".")[0]
+        "project_path": project_folder_path#+"/"+filename.split(".")[0]
     }
+
+    print("~~~~~~ Session created: ", sessions[session_id])
 
     return jsonify({"sessionId": session_id})
 
@@ -57,7 +60,13 @@ def get_all_project_files_api():
     
     folderpath = sessions[session_id]["project_path"]
     print(folderpath)
-    python_files = glob.glob(f"{folderpath}/*.py")
+    # python_files = glob.glob(f"{folderpath}/*.py")
+    python_files = list_all_files(folderpath)
+
+    print("-"*50)
+    print(python_files)
+    print("-"*50)
+
     file_content = {}
     
     for file in python_files:
@@ -88,7 +97,8 @@ def process_project_folder_api():
     
     sessions[session_id].update({
         "hash_to_lineno_fullproj": hash_to_lineno_fullproj,
-        "parse_args_fullproj": parse_args_fullproj
+        "parse_args_fullproj": parse_args_fullproj,
+        "interim_project_path": f"../interim_projects/{os.path.basename(folderpath)}"
     })
 
     return jsonify({
@@ -99,24 +109,36 @@ def process_project_folder_api():
 @app.route('/start_profiling', methods=['POST'])
 def start_profiling_api():
     data = request.json
+    print("------------> Data: ", data)
     session_id = data.get("session_id")
     
     if not session_id or session_id not in sessions:
         return jsonify({"error": "Session ID not provided or invalid"}), 400
     
+    if "interim_project_path" not in sessions[session_id]:
+        return jsonify({"error": "Interim project path not found"}), 400
+    
     proj_name = os.path.basename(sessions[session_id]["project_path"])
     profile_log_csv_path = f"../profile_logs/{proj_name}.csv"
     function_log_path = f"../function_logs/{proj_name}.log"
     
-    caller_metadata = {
-        "filepath": "../interim_projects/proj1/main.py",
-        "args": {
-            "cpu_power": 3,
-            "memory_power": 3,
-            "io_power": 3,
-            "power_of_10": 3
-        }
-    }
+    if "caller_metadata" not in data:
+        return jsonify({"error": "Caller metadata not provided"}), 400
+
+    caller_metadata = data.get("caller_metadata")
+    # replace 'target_projects' in caller_metadata['filepath'] with 'interim_projects'
+    caller_metadata['filepath'] = caller_metadata['filepath'].replace('target_projects', 'interim_projects')
+    print("------------> Caller Metadata: ", caller_metadata)
+
+    # caller_metadata = {
+    #     "filepath": "../interim_projects/proj1/main.py",
+    #     "args": {
+    #         "cpu_power": 3,
+    #         "memory_power": 3,
+    #         "io_power": 3,
+    #         "power_of_10": 3
+    #     }
+    # }
 
     if "hash_to_lineno_fullproj" not in sessions[session_id]:
         return jsonify({"error": "Intermediary data not found"}), 400
@@ -182,6 +204,25 @@ def analyze_profile_api():
         "function_profile_map": function_profile_map,
         "profiletime_to_function": profiletime_to_function
     })
+
+
+# Reset the target projects folder, interim projects folder, profile logs folder, and sessions
+# Dont delete the root folder just delete its contents
+@app.route('/reset', methods=['POST'])
+def reset_api():
+    for folder in [UPLOAD_FOLDER, '../interim_projects', '../profile_logs']:
+        for file in os.listdir(folder):
+            file_path = os.path.join(folder, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+    sessions.clear()
+    return "Reset successful"
 
 if __name__ == '__main__':
     app.run(port=8020, host='0.0.0.0')

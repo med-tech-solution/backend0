@@ -174,6 +174,7 @@ class LogEmbedderWorkflow:
             file_content = replace_code_in_file(file_content, old_code_snip, new_code_snip,handle_indentation=False) # handle_indentation is False because indentation is not altered in the modified code
 
         # Write the modified content to the file
+        print("~~~~~~~~~~~~ Log: Writing to file into ", write_filepath)
         write_code(write_filepath, file_content)
         print("Log: Done")
 
