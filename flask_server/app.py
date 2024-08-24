@@ -193,17 +193,21 @@ def analyze_profile_api():
     function_log_path = sessions[session_id]["function_log_path"]
     
     try:
-        function_profile_map, profiletime_to_function = map_function_to_profile_logs(function_log_path, profile_log_csv_path)
+        function_profile_map, profiletime_to_function, function_wise_energy_and_avg,all_function_avg = map_function_to_profile_logs(function_log_path, profile_log_csv_path)
         sessions[session_id].update({
             "function_profile_map": function_profile_map,
-            "profiletime_to_function": profiletime_to_function
+            "profiletime_to_function": profiletime_to_function,
+            "function_wise_energy_and_avg": function_wise_energy_and_avg,
+            "all_function_avg": all_function_avg
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     return jsonify({
         "function_profile_map": function_profile_map,
-        "profiletime_to_function": profiletime_to_function
+        "profiletime_to_function": profiletime_to_function,
+        "function_wise_energy_and_avg": function_wise_energy_and_avg,
+        "all_function_avg": all_function_avg
     })
 
 
