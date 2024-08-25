@@ -3,6 +3,7 @@ from utils import *
 from profile_utils import *
 from profile_anal import *
 from opt_utils import *
+from opentext_utils import *
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -200,6 +201,11 @@ def analyze_profile_api():
             "function_wise_energy_and_avg": function_wise_energy_and_avg,
             "all_function_avg": all_function_avg
         })
+
+        # send email using the function defined in opentext_utils.py
+        send_email(os.getenv("ADMIN_MAIL"), str(json.dumps(all_function_avg, indent=4)))
+
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

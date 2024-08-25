@@ -4,4 +4,5 @@ myenv
 **/__pycache__/
 target_projects/*
 interim_projects
+deprecated_projects
 
