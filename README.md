@@ -26,6 +26,10 @@ cd flask_server
 python3 app.py
 ```
 
+### 4. Required Operating System
+- Linux based
+- MacOS
+
 ### Directory structure
 ```
 .
