@@ -1,4 +1,4 @@
-## Setting the environment
+## How to run the Backend Server
 
 ### 1. Install the required packages
 ```bash
